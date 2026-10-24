@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Môi trường ảo
+.venv/
+venv/
+
+# Dữ liệu và mô hình: tải bằng scripts/download_data.py, không commit
+data/
+models/
+
+# Kết quả trung gian (chỉ commit bảng/hình cuối cùng trong results/final/)
+results/*
+!results/final/
+
+# IDE / hệ điều hành
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
