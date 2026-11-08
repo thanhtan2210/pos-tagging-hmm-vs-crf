@@ -52,7 +52,3 @@ python -m pytest
 python scripts/eda.py
 python scripts/run_experiments.py
 ```
-
-## Sử dụng công cụ AI
-
-Theo mục 5.4 đề cương môn học, việc sử dụng công cụ AI được ghi lại trong [AI_USAGE.md](AI_USAGE.md).
