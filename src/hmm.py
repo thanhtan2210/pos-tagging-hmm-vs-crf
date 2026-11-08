@@ -34,6 +34,7 @@ class HMMTagger:
         #     trans[i, j] số lần nhãn j đứng ngay sau nhãn i
         #     emit[i, w]  số lần từ w mang nhãn i
         #
+
         # TODO(2): cộng self.alpha vào mỗi ô, chuẩn hóa để mỗi hàng có tổng = 1,
         #     rồi lấy log và lưu vào:
         #     self.log_pi  shape (T,)
