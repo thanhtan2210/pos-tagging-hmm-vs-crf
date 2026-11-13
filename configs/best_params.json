@@ -1,0 +1,5 @@
+{
+  "_todo": "Sinh tự động bởi scripts/tune.py (k-fold trên train). Không sửa tay theo kết quả dev.",
+  "vi": {"hmm": {}, "crf": {}},
+  "en": {"hmm": {}, "crf": {}}
+}

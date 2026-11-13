@@ -9,6 +9,14 @@ Ký hiệu (khớp slide Ch.5 Graphical Models, phần HMM):
 Mọi tính toán làm trong không gian log để tránh underflow với câu dài
 (tích của hàng chục xác suất nhỏ sẽ về 0 khi dùng số thực).
 """
+
+# TODO (mục 4, RQ2): sau khi qua 6/6 test, thêm các chiến lược xử lý từ chưa gặp
+# - [ ] HMMTagger(alpha, unk="...") với các lựa chọn:
+#       "add-alpha"  : như hiện tại, một UNK chung
+#       "rare"       : từ xuất hiện <= k lần trong train được thay bằng UNK khi đếm
+#       "signature"  : lớp UNK theo hình thái (UNK-CAP, UNK-NUM, UNK-HYPHEN, ...)
+# - [ ] alpha và unk được chọn bằng scripts/tune.py, không chọn tay trên dev
+
 import numpy as np
 
 UNK = "<UNK>"

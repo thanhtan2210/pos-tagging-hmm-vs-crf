@@ -12,9 +12,10 @@ venv/
 data/
 models/
 
-# Kết quả trung gian (chỉ commit bảng/hình cuối cùng trong results/final/)
+# Kết quả trung gian (chỉ commit bảng/hình cuối cùng trong results/tables, results/figures)
 results/*
-!results/final/
+!results/tables/
+!results/figures/
 
 # IDE / hệ điều hành
 .vscode/

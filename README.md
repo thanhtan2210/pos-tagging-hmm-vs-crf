@@ -35,7 +35,7 @@ scripts/
   eda.py          thống kê dữ liệu -> results/eda.md
   run_experiments.py
 tests/            kiểm thử (Viterbi so với vét cạn, đọc CoNLL-U, ...)
-docs/             kế hoạch, ghi chú
+docs/notes/       kế hoạch, ghi chú
 ```
 
 ## Cài đặt và chạy

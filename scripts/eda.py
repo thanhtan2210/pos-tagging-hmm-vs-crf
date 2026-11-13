@@ -3,6 +3,10 @@
 Ghi kết quả ra results/eda.md. Chỉ dùng train và dev; tập test để dành cho
 lần đánh giá cuối cùng.
 """
+
+# TODO (mục 6): tách phần tính "token không mang nhãn đa số" (độ mơ hồ) thành hàm riêng,
+#       để scripts/analyze.py tái sử dụng làm mask cho accuracy trên từ mơ hồ.
+
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path

@@ -1,4 +1,9 @@
 """Baseline: gán mỗi từ nhãn xuất hiện nhiều nhất của nó trong tập train."""
+
+# TODO (mục 4, mốc so sánh cho RQ2):
+# - [ ] (tùy chọn) với từ OOV: đoán theo hậu tố / chữ hoa / chữ số thay vì luôn trả self.default,
+#       để so OOV accuracy công bằng hơn. Giữ bản gốc làm một dòng riêng trong bảng.
+
 from collections import Counter, defaultdict
 
 

@@ -38,3 +38,12 @@ Mục tiêu buổi trình bày: thầy duyệt đề tài và hướng làm. C�
 - RQ4: MaxEnt từng từ vs MEMM vs CRF
 - Nâng cao: GA chọn tổ hợp nhóm đặc trưng (Ch.4 Genetic Algorithms)
 - Đánh giá cuối trên test (một lần), báo cáo, slide cuối, đóng gói nộp bài
+
+## TODO (mục 1): giả thuyết cho từng RQ — viết TRƯỚC khi chạy thí nghiệm
+
+| RQ | Giả thuyết | Thí nghiệm | Xác nhận nếu | Bác bỏ nếu |
+|---|---|---|---|---|
+| RQ1 | | | | |
+| RQ2 | | | | |
+| RQ3 | | | | |
+| RQ4 | | | | |

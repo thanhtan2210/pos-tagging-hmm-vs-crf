@@ -5,6 +5,15 @@
 - macro_f1  : trung bình F1 các nhãn, mỗi nhãn có trọng số như nhau -> lộ ra nhãn hiếm bị đoán sai
 - sent_acc  : tỷ lệ câu đúng hoàn toàn
 """
+
+# TODO (mục 0, làm đầu tiên): tách "dự đoán" khỏi "tính metric"
+# - [ ] predict_all(tagger, sentences) -> (records, predict_time_s)
+#       records: list các (words, gold, pred) theo từng câu
+# - [ ] metrics(records, train_vocab, mask=None) -> dict
+#       mask: hàm/điều kiện chọn tập token con (OOV, từ mơ hồ, câu > 25 từ, ...)
+# - [ ] evaluate() giữ nguyên chữ ký, chỉ còn là metrics(predict_all(...)) để test/script cũ vẫn chạy
+# - [ ] save_records / load_records: results/preds/{lang}_{model}_{split}.jsonl
+
 import time
 
 from sklearn.metrics import classification_report, f1_score

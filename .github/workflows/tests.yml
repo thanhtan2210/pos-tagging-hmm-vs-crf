@@ -1,0 +1,6 @@
+# TODO: CI chạy pytest trên mỗi push/PR
+# - [ ] on: push, pull_request
+# - [ ] actions/checkout, actions/setup-python (3.11)
+# - [ ] pip install -r requirements.txt
+# - [ ] python -m pytest  (các test không được cần dữ liệu UD thật)
+# - [ ] thêm badge vào README.md

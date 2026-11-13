@@ -43,3 +43,10 @@ Chỉ số chắc hơn là **tỷ lệ token không mang nhãn đa số của t�
 - **Tiếng Việt:** các từ mơ hồ nhất (`được`, `đến`, `về`, `cho`, `vào`, `ở`, `để`) đều vừa là động từ vừa là giới từ/phó từ. Đây là hiện tượng ngữ pháp hóa (thực từ chuyển thành hư từ) điển hình của ngôn ngữ đơn lập. Hình thái từ không phân biệt được các trường hợp này, chỉ ngữ cảnh mới phân biệt được, nên dự đoán đặc trưng hậu tố/tiền tố gần như vô ích với tiếng Việt.
 - **Tiếng Việt:** 22,4% token là từ nhiều âm tiết (`chủ tịch`, `Bùi Văn Luyến`). Dữ liệu UD đã tách từ sẵn, nên kết quả **phụ thuộc vào việc tách từ đúng**. Đây là một hạn chế cần nêu.
 - **Tiếng Anh:** mơ hồ tập trung ở từ chức năng (`to` PART/ADP, `that` SCONJ/PRON/DET, `have` VERB/AUX). Ngược lại, từ OOV tiếng Anh thường đoán được nhờ hình thái (`-ing`, `-ed`, `-ly`, viết hoa).
+
+## TODO (mục 7): Hạn chế — ghi dần trong lúc làm, cuối cùng chép sang báo cáo
+
+- [ ] dữ liệu tiếng Việt nhỏ (1.400 câu train)
+- [ ] dùng tách từ có sẵn (gold), chưa đo ảnh hưởng của tách từ tự động
+- [ ] dev VTB lệch độ dài câu so với train/test
+- [ ] chỉ so sánh các mô hình cổ điển, không có mô hình học sâu

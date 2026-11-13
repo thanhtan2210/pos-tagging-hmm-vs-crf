@@ -5,6 +5,15 @@ Ví dụ:
     python scripts/run_experiments.py --models baseline    # chỉ chạy baseline
     python scripts/run_experiments.py --split test         # CHỈ chạy một lần ở cuối dự án
 """
+
+# TODO:
+# - [ ] (mục 2) MODELS[name](**params), params đọc từ configs/best_params.json theo (lang, model)
+# - [ ] (mục 4) đăng ký "crf" (và các biến thể HMM/baseline) vào MODELS
+# - [ ] (mục 0) dùng predict_all + metrics; lưu records vào results/preds/
+# - [ ] (mục 2) khi --split test: in cảnh báo và yêu cầu xác nhận (chỉ chạy một lần)
+# - [ ] (mục 8) tham số --seed (mặc định 42), lưu params + seed kèm kết quả
+# - [ ] (mục 9) ghi bảng Markdown vào results/tables/ thay vì chỉ in ra màn hình
+
 import argparse
 import json
 import sys
