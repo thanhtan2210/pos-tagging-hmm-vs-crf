@@ -29,6 +29,7 @@ from src.crf import CRFTagger  # noqa: E402
 from src.data import TREEBANKS, load, vocabulary  # noqa: E402
 from src.evaluate import metrics, predict_all, save_records  # noqa: E402
 from src.hmm import HMMTagger  # noqa: E402
+from src.memm import MaxEntTagger, MEMMTagger  # noqa: E402
 
 CONFIG = ROOT / "configs" / "best_params.json"
 
@@ -41,6 +42,9 @@ MODELS = {
     "hmm-rare": (HMMTagger, "hmm", {"unk": "rare"}),
     "hmm-sig": (HMMTagger, "hmm", {"unk": "signature"}),
     "crf": (CRFTagger, "crf", {}),
+    # RQ4: cùng bộ đặc trưng với CRF, khác cách chuẩn hóa (từng từ / cục bộ / toàn cục)
+    "maxent": (MaxEntTagger, None, {}),
+    "memm": (MEMMTagger, None, {}),
 }
 
 
