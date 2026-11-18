@@ -16,6 +16,7 @@ Ví dụ:
 
 import argparse
 import json
+from functools import partial
 import sys
 import time
 from pathlib import Path
@@ -29,7 +30,10 @@ from src.hmm import HMMTagger  # noqa: E402
 
 MODELS = {
     "baseline": MostFrequentTagger,
+    "baseline-sig": partial(MostFrequentTagger, oov="signature"),
     "hmm": HMMTagger,
+    "hmm-rare": partial(HMMTagger, unk="rare"),
+    "hmm-sig": partial(HMMTagger, unk="signature"),
 }
 
 

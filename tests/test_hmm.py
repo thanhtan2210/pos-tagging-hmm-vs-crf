@@ -61,3 +61,12 @@ def test_predict_on_toy():
     assert m.predict(["tôi", "đọc", "cơm"]) == ["PRON", "VERB", "NOUN"]
     assert len(m.predict(["từ_lạ", "hay"])) == 2  # từ lạ không làm lỗi
     assert UNK in m.word2id
+
+
+def test_unk_strategies_run_and_map_rare_words():
+    for unk in ("add-alpha", "rare", "signature"):
+        m = HMMTagger(alpha=0.1, unk=unk).fit(TOY)
+        assert len(m.predict(["Hà Nội", "123", "đọc"])) == 3
+    m = HMMTagger(alpha=0.1, unk="rare").fit(TOY)
+    assert "cơm" not in m.word2id  # xuất hiện 1 lần -> bị thay bằng UNK
+    assert "tôi" in m.word2id
