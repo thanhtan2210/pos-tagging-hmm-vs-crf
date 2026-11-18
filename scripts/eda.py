@@ -4,8 +4,8 @@ Ghi kết quả ra results/eda.md. Chỉ dùng train và dev; tập test để d
 lần đánh giá cuối cùng.
 """
 
-# TODO (mục 6): tách phần tính "token không mang nhãn đa số" (độ mơ hồ) thành hàm riêng,
-#       để scripts/analyze.py tái sử dụng làm mask cho accuracy trên từ mơ hồ.
+# - [x] (mục 6) tách phần tính độ mơ hồ thành tags_of_words / ambiguous_words,
+#       scripts/analyze.py dùng lại làm mask cho accuracy trên từ mơ hồ.
 
 import sys
 from collections import Counter, defaultdict
@@ -16,13 +16,34 @@ sys.path.insert(0, str(ROOT))
 from src.data import TREEBANKS, load, vocabulary  # noqa: E402
 
 
+def tags_of_words(sentences):
+    """từ -> Counter nhãn của từ đó trong `sentences`."""
+    out = defaultdict(Counter)
+    for words, tags in sentences:
+        for w, t in zip(words, tags):
+            out[w][t] += 1
+    return out
+
+
+def n_non_majority(counter):
+    """Số token của một từ KHÔNG mang nhãn đa số của từ đó."""
+    return counter.total() - counter.most_common(1)[0][1]
+
+
+def ambiguous_words(sentences, min_share=0.1):
+    """Từ mơ hồ: ít nhất `min_share` số lần xuất hiện mang nhãn khác nhãn đa số.
+
+    Ngưỡng tỷ lệ (thay vì chỉ "có >= 2 nhãn") để không tính các từ chỉ có vài nhãn nhầm do nhiễu.
+    """
+    return {w for w, c in tags_of_words(sentences).items()
+            if n_non_majority(c) / c.total() >= min_share}
+
+
 def describe(lang):
     train, dev = load(lang, "train"), load(lang, "dev")
     tokens = [(w, t) for words, tags in train for w, t in zip(words, tags)]
     tag_counts = Counter(t for _, t in tokens)
-    tags_of_word = defaultdict(Counter)
-    for w, t in tokens:
-        tags_of_word[w][t] += 1
+    tags_of_word = tags_of_words(train)
     word_counts = Counter(w for w, _ in tokens)
     train_vocab = vocabulary(train)
     dev_tokens = [w for words, _ in dev for w in words]
@@ -42,7 +63,7 @@ def describe(lang):
         f"| Từ chỉ xuất hiện 1 lần (hapax) / tổng số từ khác nhau | "
         f"{sum(c == 1 for c in word_counts.values()) / len(word_counts):.1%} |",
         f"| Token không mang nhãn đa số của từ đó (lỗi tối thiểu nếu chỉ tra từ điển) | "
-        f"{sum(c.total() - c.most_common(1)[0][1] for c in tags_of_word.values()) / len(tokens):.1%} |",
+        f"{sum(n_non_majority(c) for c in tags_of_word.values()) / len(tokens):.1%} |",
         f"| Tỷ lệ token OOV trên dev | "
         f"{sum(w not in train_vocab for w in dev_tokens) / len(dev_tokens):.1%} |",
         f"| Token chứa dấu cách (từ nhiều âm tiết) | "
@@ -61,7 +82,7 @@ def describe(lang):
     # (vd. "the" có vài lần bị gán nhầm PRON).
     ambiguous = sorted(
         tags_of_word,
-        key=lambda w: -(word_counts[w] - tags_of_word[w].most_common(1)[0][1]),
+        key=lambda w: -n_non_majority(tags_of_word[w]),
     )[:15]
     lines += ["", "Các từ mơ hồ nhất (theo số token không mang nhãn đa số):", ""]
     lines += [
