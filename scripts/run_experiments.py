@@ -8,7 +8,7 @@ Ví dụ:
 
 # TODO:
 # - [ ] (mục 2) MODELS[name](**params), params đọc từ configs/best_params.json theo (lang, model)
-# - [ ] (mục 4) đăng ký "crf" (và các biến thể HMM/baseline) vào MODELS
+# - [x] (mục 4) đăng ký "crf" (và các biến thể HMM/baseline) vào MODELS
 # - [x] (mục 0) dùng predict_all + metrics; lưu records vào results/preds/
 # - [ ] (mục 2) khi --split test: in cảnh báo và yêu cầu xác nhận (chỉ chạy một lần)
 # - [ ] (mục 8) tham số --seed (mặc định 42), lưu params + seed kèm kết quả
@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from src.baseline import MostFrequentTagger  # noqa: E402
+from src.crf import CRFTagger  # noqa: E402
 from src.data import TREEBANKS, load, vocabulary  # noqa: E402
 from src.evaluate import metrics, predict_all, save_records  # noqa: E402
 from src.hmm import HMMTagger  # noqa: E402
@@ -34,6 +35,7 @@ MODELS = {
     "hmm": HMMTagger,
     "hmm-rare": partial(HMMTagger, unk="rare"),
     "hmm-sig": partial(HMMTagger, unk="signature"),
+    "crf": CRFTagger,
 }
 
 
