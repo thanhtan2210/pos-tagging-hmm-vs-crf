@@ -9,7 +9,7 @@ Ví dụ:
 # TODO:
 # - [ ] (mục 2) MODELS[name](**params), params đọc từ configs/best_params.json theo (lang, model)
 # - [ ] (mục 4) đăng ký "crf" (và các biến thể HMM/baseline) vào MODELS
-# - [ ] (mục 0) dùng predict_all + metrics; lưu records vào results/preds/
+# - [x] (mục 0) dùng predict_all + metrics; lưu records vào results/preds/
 # - [ ] (mục 2) khi --split test: in cảnh báo và yêu cầu xác nhận (chỉ chạy một lần)
 # - [ ] (mục 8) tham số --seed (mặc định 42), lưu params + seed kèm kết quả
 # - [ ] (mục 9) ghi bảng Markdown vào results/tables/ thay vì chỉ in ra màn hình
@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from src.baseline import MostFrequentTagger  # noqa: E402
 from src.data import TREEBANKS, load, vocabulary  # noqa: E402
-from src.evaluate import evaluate  # noqa: E402
+from src.evaluate import metrics, predict_all, save_records  # noqa: E402
 from src.hmm import HMMTagger  # noqa: E402
 
 MODELS = {
@@ -50,10 +50,13 @@ def main():
                 start = time.perf_counter()
                 model = MODELS[name]().fit(train)
                 fit_time = time.perf_counter() - start
-                m = evaluate(model, evalset, train_vocab)
+                records, predict_time = predict_all(model, evalset)
             except NotImplementedError as e:
                 print(f"[{lang}] {name}: bỏ qua, chưa cài đặt ({e})")
                 continue
+            save_records(records, ROOT / "results" / "preds" / f"{lang}_{name}_{args.split}.jsonl")
+            m = metrics(records, train_vocab)
+            m["predict_time_s"] = predict_time
             print(f"\n[{lang}] {name}\n{m.pop('report')}")
             rows.append({"lang": lang, "model": name, "split": args.split,
                          "fit_time_s": fit_time, **m})
