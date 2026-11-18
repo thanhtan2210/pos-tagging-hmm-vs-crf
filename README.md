@@ -1,54 +1,99 @@
-# Mô hình sinh và mô hình phân biệt trong gán nhãn từ loại
+# Generative vs. Discriminative Models for POS Tagging
 
-So sánh **HMM** (mô hình sinh), **MaxEnt / MEMM** và **CRF** (mô hình phân biệt) cho bài toán gán nhãn từ loại (POS tagging) trên tiếng Việt và tiếng Anh, dùng dữ liệu [Universal Dependencies](https://universaldependencies.org/) với bộ nhãn UPOS (17 nhãn).
+Comparing **HMM** (generative) with **MaxEnt / MEMM** and **CRF** (discriminative) for part-of-speech tagging
+on Vietnamese and English, using [Universal Dependencies](https://universaldependencies.org/) treebanks
+with the 17-tag UPOS tagset.
 
-Bài tập lớn môn Học máy (CO3117), HK261, Trường ĐH Bách Khoa – ĐHQG-HCM.
+Machine Learning course project (CO3117), HCMUT. Vietnamese version: [README.vi.md](README.vi.md).
 
-## Câu hỏi nghiên cứu
+## Research questions
 
-| | Câu hỏi | Thí nghiệm |
+| | Question | Experiment |
 |---|---|---|
-| RQ1 | Lượng dữ liệu huấn luyện ảnh hưởng thế nào đến mô hình sinh và mô hình phân biệt? (Ng & Jordan, 2002) | Learning curve trên 5% → 100% tập train |
-| RQ2 | Mô hình nào xử lý từ chưa gặp (OOV) tốt hơn, và vì sao? | Accuracy riêng trên token OOV; các cách xử lý UNK của HMM |
-| RQ3 | Đặc trưng nào có ích, và có phụ thuộc ngôn ngữ không? | Ablation nhóm đặc trưng CRF trên tiếng Việt và tiếng Anh |
-| RQ4 | Mô hình hóa cả chuỗi có hơn phân loại từng từ không? | MaxEnt từng từ vs MEMM vs CRF (vấn đề label bias) |
+| RQ1 | How does training-set size affect generative vs. discriminative models? (Ng & Jordan, 2002) | Learning curves on 5% → 100% of train |
+| RQ2 | Which model handles unseen (OOV) words better, and why? | OOV accuracy; HMM UNK strategies; error analysis |
+| RQ3 | Which features help, and is it language-dependent? | CRF feature-group ablation (vi, en); genetic algorithm |
+| RQ4 | Does modelling the whole sequence beat per-token classification? | MaxEnt vs. MEMM vs. CRF with identical features (label bias) |
 
-## Dữ liệu
+## Results (dev set)
 
-| Ngôn ngữ | Treebank |
+All hyperparameters are chosen by 3-fold cross-validation **on train** (`scripts/tune.py`); the test set is
+used only once, at the end. Full table: [results/tables/results_dev.md](results/tables/results_dev.md).
+
+| Model | vi token acc | vi OOV acc | en token acc | en OOV acc |
+|---|---|---|---|---|
+| Most-frequent-tag baseline | 81.29% | 43.74% | 86.13% | 29.56% |
+| HMM (add-α, single UNK) | 76.12% | 13.23% | 87.47% | 25.68% |
+| HMM (signature UNK, tuned) | 80.95% | 50.26% | 90.74% | 64.25% |
+| MaxEnt (per token) | 85.53% | 63.57% | 94.41% | 78.97% |
+| MEMM | 85.74% | 64.15% | 94.52% | 79.11% |
+| **CRF** | **85.62%** | **63.78%** | **94.78%** | **79.44%** |
+
+Key findings:
+
+- **RQ1** – CRF beats HMM at *every* training size, including 5% of train; we do not observe the
+  crossover predicted by Ng & Jordan ([learning_curve_vi.png](results/figures/learning_curve_vi.png),
+  [learning_curve_en.png](results/figures/learning_curve_en.png)).
+- **RQ2** – OOV handling dominates the HMM's performance: signature-based UNK classes raise HMM OOV
+  accuracy from 13% to 50% (vi) and 26% to 64% (en). Discriminative models still lead on OOV by ~14 points
+  thanks to affix/shape features. On Vietnamese, the tuned HMM does not significantly beat the baseline
+  (paired bootstrap CI contains 0), see [analysis_vi_dev.md](results/tables/analysis_vi_dev.md).
+- **RQ3** – Most useful groups: *shape* and *±1 context* for Vietnamese; *±1 context* and *affixes* for
+  English. ±2 context does not help in either language; the genetic algorithm independently drops it
+  ([ablation_vi.md](results/tables/ablation_vi.md), [ablation_en.md](results/tables/ablation_en.md),
+  [ga_vi.md](results/tables/ga_vi.md)).
+- **RQ4** – With identical features, MaxEnt, MEMM and CRF are within 0.4 points; the feature set matters far
+  more than the sequence model on these data.
+
+## Data
+
+| Language | Treebank |
 |---|---|
-| Tiếng Việt | [UD_Vietnamese-VTB](https://github.com/UniversalDependencies/UD_Vietnamese-VTB) |
-| Tiếng Anh | [UD_English-EWT](https://github.com/UniversalDependencies/UD_English-EWT) |
+| Vietnamese | [UD_Vietnamese-VTB](https://github.com/UniversalDependencies/UD_Vietnamese-VTB) |
+| English | [UD_English-EWT](https://github.com/UniversalDependencies/UD_English-EWT) |
 
-Dữ liệu không nằm trong repo; tải bằng `scripts/download_data.py` (bản dùng trong project: nhánh `master` của UD, tải ngày 24/10/2026). Tập **test chỉ được dùng một lần** ở cuối dự án, mọi lựa chọn mô hình và tham số làm trên tập dev.
+Data is not included; download with `scripts/download_data.py` (UD `master` branch, retrieved 2026-10-24).
+Each treebank has its own license.
 
-## Cấu trúc
+## Layout
 
 ```
 src/
-  data.py         đọc file CoNLL-U
-  baseline.py     baseline: nhãn phổ biến nhất của mỗi từ
-  hmm.py          HMM bigram + Viterbi (tự cài đặt bằng numpy)
-  evaluate.py     token acc, OOV acc, macro-F1, sentence acc
-scripts/
-  download_data.py
-  eda.py          thống kê dữ liệu -> results/eda.md
-  run_experiments.py
-tests/            kiểm thử (Viterbi so với vét cạn, đọc CoNLL-U, ...)
-docs/notes/       kế hoạch, ghi chú
+  data.py             CoNLL-U reader
+  baseline.py         most-frequent-tag baseline
+  hmm.py              bigram HMM + Viterbi (numpy), UNK strategies
+  features.py         named CRF/MaxEnt feature groups
+  crf.py              CRF (sklearn-crfsuite)
+  memm.py             MaxEnt and MEMM (+ Viterbi)
+  evaluate.py         predict_all / metrics(mask) / save & load predictions
+  model_selection.py  sentence-level k-fold, grid search, subsampling
+  stats.py            paired bootstrap, McNemar
+  ga.py               genetic algorithm over feature groups
+scripts/              download_data, eda, tune, run_experiments, learning_curve, analyze, ablation
+configs/              best_params.json (generated by tune.py)
+results/tables, results/figures   committed tables and figures
+tests/                pytest (no UD data required)
 ```
 
-## Cài đặt và chạy
+## Quick start
 
-Yêu cầu Python 3.11.
+Python 3.11.
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate          # Windows; Linux/macOS: source .venv/bin/activate
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-python scripts/download_data.py
-python -m pytest
-python scripts/eda.py
-python scripts/run_experiments.py
+make all          # data, tests, EDA, tuning, dev results, learning curve, ablation, analysis
+make final        # evaluate on TEST — run only once
 ```
+
+Or with Docker: `docker build -t pos-tagging . && docker run --rm -v "$PWD/results:/app/results" pos-tagging`.
+
+## Citation
+
+Data: Universal Dependencies (Nivre et al., 2020); UD_Vietnamese-VTB; UD_English-EWT (Silveira et al., 2014).
+
+## License
+
+Code: MIT ([LICENSE](LICENSE)). Data: see each UD treebank.
