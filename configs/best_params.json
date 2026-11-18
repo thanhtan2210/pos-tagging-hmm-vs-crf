@@ -1,5 +1,39 @@
 {
-  "_todo": "Sinh tự động bởi scripts/tune.py (k-fold trên train). Không sửa tay theo kết quả dev.",
-  "vi": {"hmm": {}, "crf": {}},
-  "en": {"hmm": {}, "crf": {}}
+  "vi": {
+    "hmm": {
+      "alpha": 0.01,
+      "unk": "signature",
+      "_cv": {
+        "k": 3,
+        "seed": 42
+      }
+    },
+    "crf": {
+      "c1": 0.0,
+      "c2": 0.1,
+      "_cv": {
+        "k": 3,
+        "seed": 42
+      }
+    }
+  },
+  "en": {
+    "hmm": {
+      "alpha": 0.001,
+      "unk": "signature",
+      "_cv": {
+        "k": 3,
+        "seed": 42
+      }
+    },
+    "crf": {
+      "c1": 0.05,
+      "c2": 0.1,
+      "_cv": {
+        "k": 3,
+        "seed": 42
+      }
+    }
+  },
+  "_note": "Sinh tự động bởi scripts/tune.py (k-fold trên train). Không sửa tay theo kết quả dev."
 }

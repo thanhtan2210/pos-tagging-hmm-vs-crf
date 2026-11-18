@@ -17,7 +17,7 @@ Chiến lược xử lý từ chưa gặp (tham số `unk`, phục vụ RQ2):
 
 # TODO (mục 4, RQ2):
 # - [x] HMMTagger(alpha, unk="...") với các lựa chọn add-alpha / rare / signature
-# - [ ] alpha và unk được chọn bằng scripts/tune.py, không chọn tay trên dev
+# - [x] alpha và unk được chọn bằng scripts/tune.py, không chọn tay trên dev
 
 import re
 from collections import Counter

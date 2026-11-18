@@ -6,7 +6,7 @@ Huấn luyện bằng L-BFGS, phạt L1 (c1) và L2 (c2). c1/c2 lấy từ confi
 
 # - [x] class CRFTagger(groups=None, c1, c2, max_iterations), giao diện fit/predict
 # - [x] sent2features(words, groups) trong src/features.py
-# - [ ] c1/c2 lấy từ configs/best_params.json (scripts/run_experiments.py)
+# - [x] c1/c2 lấy từ configs/best_params.json (scripts/run_experiments.py)
 # - [x] với c1 > 0: n_active_features() đếm đặc trưng có trọng số khác 0
 # - [x] đăng ký "crf" vào MODELS trong scripts/run_experiments.py
 
