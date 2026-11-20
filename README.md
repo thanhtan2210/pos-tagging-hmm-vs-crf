@@ -46,18 +46,49 @@ Key findings:
   [learning_curve_en.png](results/figures/learning_curve_en.png)).
 - **RQ2** – OOV handling dominates the HMM's performance: signature-based UNK classes raise HMM OOV
   accuracy from 13% to 49% (vi) and 26% to 64% (en). CRF still leads the HMM on OOV by 19 (vi) and
-  15 (en) points thanks to affix/shape features. On Vietnamese, the tuned HMM is 0.92 points *below* the baseline
-  (p < 0.001). The loss comes from words seen once in training: the HMM maps them to UNK classes during
-  training, so it tags them correctly only 49% of the time against 91% for the baseline. On OOV and
-  ambiguous words the HMM beats the baseline ([analysis_vi_cv.md](results/tables/analysis_vi_cv.md)).
+  15 (en) points thanks to affix/shape features. On Vietnamese, HMM vs. baseline depends on the evaluation
+  split (see the test section below): 0.92 points *below* the baseline in 5-fold CV, but 1.22 points
+  *above* it on test. In CV, the loss comes from words seen once in training: the HMM maps them to UNK
+  classes during training, so it tags them correctly only 49% of the time against 91% for the baseline.
+  On OOV and ambiguous words the HMM beats the baseline
+  ([analysis_vi_cv.md](results/tables/analysis_vi_cv.md)).
+  With 1,400 training sentences the Vietnamese HMM is roughly on par with the baseline.
 - **RQ3** – Vietnamese: every group except ±2 context lowers accuracy when removed, in 5 of 5 folds. The
   largest drops come from ±1 context (−0.61), affixes (−0.52) and shape (−0.43); these are within 0.2 points
   of each other, so their order is not reliable. The VTB dev set had suggested that shape mattered most and
   affixes hardly at all. English: *±1 context* and *affixes*. ±2 context does not help in either language;
   the genetic algorithm independently drops it ([ablation_vi.md](results/tables/ablation_vi.md),
   [ablation_en.md](results/tables/ablation_en.md), [ga_vi.md](results/tables/ga_vi.md)).
-- **RQ4** – With identical features, MaxEnt, MEMM and CRF are within 0.4 points; the feature set matters far
-  more than the sequence model on these data.
+- **RQ4** – With identical features, MaxEnt, MEMM and CRF are within 0.5 points; the feature set matters far
+  more than the sequence model on these data. The small CRF advantage over MaxEnt is nevertheless
+  significant on test for both languages (vi +0.47, p = 0.006; en +0.31, p < 0.001).
+
+## Results on test (evaluated once)
+
+Hyperparameters were frozen before this run (`configs/best_params.json`).
+Full tables: [results_test.md](results/tables/results_test.md),
+[analysis_vi_test.md](results/tables/analysis_vi_test.md), [analysis_en_test.md](results/tables/analysis_en_test.md).
+
+| Model | vi token acc | vi OOV acc | en token acc | en OOV acc |
+|---|---|---|---|---|
+| Most-frequent-tag baseline | 82.33% | 34.29% | 86.20% | 30.80% |
+| HMM (add-α, single UNK) | 80.46% | 16.60% | 87.70% | 27.05% |
+| HMM (signature UNK, tuned) | 83.55% | 49.46% | 91.18% | 64.35% |
+| MaxEnt (per token) | 87.87% | 66.46% | 94.62% | 78.75% |
+| MEMM | 88.06% | 66.40% | 94.72% | 79.19% |
+| **CRF** | **88.34%** | **67.60%** | **94.92%** | **80.32%** |
+
+Vietnamese HMM minus baseline under the three evaluation protocols:
+
+| Protocol | HMM − baseline | 95% CI / p |
+|---|---|---|
+| VTB dev (shifted sentence lengths) | −0.34 | CI [−0.83, +0.15], not significant |
+| 5-fold CV on train | −0.92 | p < 0.001 |
+| Test | +1.22 | CI [+0.54, +1.88], p < 0.001 |
+
+The sign flips between protocols, so we only claim that the Vietnamese HMM is on par with the baseline.
+All other conclusions (CRF > HMM by 4–5 points, discriminative models lead on OOV, MaxEnt ≈ MEMM ≈ CRF)
+hold under every protocol.
 
 ## Data
 

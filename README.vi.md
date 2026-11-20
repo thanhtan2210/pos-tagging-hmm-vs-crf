@@ -13,6 +13,33 @@ Bài tập lớn môn Học máy (CO3117), HK261, Trường ĐH Bách Khoa – �
 | RQ3 | Đặc trưng nào có ích, và có phụ thuộc ngôn ngữ không? | Ablation nhóm đặc trưng CRF trên tiếng Việt và tiếng Anh |
 | RQ4 | Mô hình hóa cả chuỗi có hơn phân loại từng từ không? | MaxEnt từng từ vs MEMM vs CRF (vấn đề label bias) |
 
+## Kết quả trên test (đánh giá một lần)
+
+Tham số đã được chốt trước khi chạy (`configs/best_params.json`).
+Bảng đầy đủ: [results_test.md](results/tables/results_test.md),
+[analysis_vi_test.md](results/tables/analysis_vi_test.md), [analysis_en_test.md](results/tables/analysis_en_test.md).
+
+| Mô hình | vi token acc | vi OOV acc | en token acc | en OOV acc |
+|---|---|---|---|---|
+| Baseline nhãn phổ biến nhất | 82.33% | 34.29% | 86.20% | 30.80% |
+| HMM (add-α, một UNK chung) | 80.46% | 16.60% | 87.70% | 27.05% |
+| HMM (UNK theo hình thái, đã tune) | 83.55% | 49.46% | 91.18% | 64.35% |
+| MaxEnt (từng từ) | 87.87% | 66.46% | 94.62% | 78.75% |
+| MEMM | 88.06% | 66.40% | 94.72% | 79.19% |
+| **CRF** | **88.34%** | **67.60%** | **94.92%** | **80.32%** |
+
+HMM trừ baseline (tiếng Việt) theo ba cách đánh giá:
+
+| Cách đánh giá | HMM − baseline | CI 95% / p |
+|---|---|---|
+| Dev VTB (lệch độ dài câu) | −0.34 | CI [−0.83, +0.15], không có ý nghĩa |
+| 5-fold trên train | −0.92 | p < 0.001 |
+| Test | +1.22 | CI [+0.54, +1.88], p < 0.001 |
+
+Dấu của hiệu đổi theo cách đánh giá, nên chỉ kết luận HMM tiếng Việt ngang ngửa baseline với 1.400 câu train.
+Các kết luận khác (CRF hơn HMM 4–5 điểm, mô hình phân biệt dẫn trên OOV, MaxEnt ≈ MEMM ≈ CRF) đúng với cả ba cách.
+Trên test, CRF hơn MaxEnt nhỏ nhưng có ý nghĩa ở cả hai ngôn ngữ (vi +0.47, p = 0.006; en +0.31, p < 0.001).
+
 ## Dữ liệu
 
 | Ngôn ngữ | Treebank |
@@ -50,8 +77,9 @@ Phát hiện chính:
   như Ng & Jordan dự đoán. Với tiếng Việt, khoảng cách thu hẹp từ 11,4 điểm ở 5% train xuống 5,3 điểm ở 100%
   ([learning_curve_vi.png](results/figures/learning_curve_vi.png), [learning_curve_en.png](results/figures/learning_curve_en.png)).
 - **RQ2**: cách xử lý OOV quyết định HMM: lớp UNK theo hình thái nâng OOV acc từ 13% lên 49% (vi) và 26% lên 64% (en).
-  CRF vẫn hơn HMM 19 điểm (vi) và 15 điểm (en) trên OOV nhờ đặc trưng tiền/hậu tố và hình thái. Trên tiếng Việt, HMM
-  đã tune **thua** baseline 0,92 điểm (p < 0,001). Phần thua đến từ các từ chỉ gặp một lần trong train: HMM thay
+  CRF vẫn hơn HMM 19 điểm (vi) và 15 điểm (en) trên OOV nhờ đặc trưng tiền/hậu tố và hình thái. Trên tiếng Việt, HMM so với
+  baseline phụ thuộc cách đánh giá (xem mục test ở trên): **thua** 0,92 điểm trên 5-fold nhưng **thắng** 1,22 điểm
+  trên test; với 1.400 câu train, HMM tiếng Việt chỉ ngang ngửa baseline. Trên 5-fold, phần thua đến từ các từ chỉ gặp một lần trong train: HMM thay
   chúng bằng lớp UNK khi học, nên chỉ gán đúng 49% số từ này, còn baseline đúng 91%. Trên từ OOV và từ mơ hồ, HMM
   vẫn hơn baseline ([analysis_vi_cv.md](results/tables/analysis_vi_cv.md)).
 - **RQ3**: tiếng Việt: bỏ bất kỳ nhóm nào trừ ngữ cảnh ±2 đều làm accuracy giảm, ở cả 5/5 fold. Giảm nhiều nhất khi bỏ
@@ -60,8 +88,9 @@ Phát hiện chính:
   và *tiền/hậu tố*. Ngữ cảnh ±2 không giúp ở cả hai ngôn ngữ; GA cũng tự bỏ nhóm này
   ([ablation_vi.md](results/tables/ablation_vi.md), [ablation_en.md](results/tables/ablation_en.md),
   [ga_vi.md](results/tables/ga_vi.md)).
-- **RQ4**: cùng bộ đặc trưng, MaxEnt, MEMM và CRF chênh nhau dưới 0.4 điểm; bộ đặc trưng quan trọng hơn nhiều so với
-  việc mô hình hóa chuỗi trên dữ liệu này.
+- **RQ4**: cùng bộ đặc trưng, MaxEnt, MEMM và CRF chênh nhau dưới 0,5 điểm; bộ đặc trưng quan trọng hơn nhiều so với
+  việc mô hình hóa chuỗi trên dữ liệu này. Dù nhỏ, lợi thế của CRF so với MaxEnt có ý nghĩa thống kê trên test ở cả
+  hai ngôn ngữ (vi +0,47, p = 0,006; en +0,31, p < 0,001).
 
 ## Cấu trúc
 
