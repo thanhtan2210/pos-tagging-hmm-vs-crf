@@ -5,6 +5,7 @@ Cần chạy scripts/run_experiments.py trước để có results/preds/{lang}_
 Ví dụ:
     python scripts/analyze.py
     python scripts/analyze.py --models hmm crf --split dev
+    python scripts/analyze.py --split cv --langs vi    # dự đoán out-of-fold của run_experiments.py --split cv
 """
 
 # - [x] ma trận nhầm lẫn (chuẩn hóa theo hàng) + top-10 cặp nhầm gold -> pred
@@ -30,17 +31,20 @@ sys.path.insert(0, str(ROOT))
 from scripts.eda import ambiguous_words  # noqa: E402
 from src.data import TREEBANKS, load, vocabulary  # noqa: E402
 from src.evaluate import load_records, metrics  # noqa: E402
+from src.model_selection import CV_K, CV_SEED, kfold_sentences  # noqa: E402
 from src.stats import mcnemar, paired_bootstrap  # noqa: E402
 
 LENGTH_BINS = [(1, 10, "<=10"), (11, 25, "11-25"), (26, 50, "26-50"), (51, 10**9, ">50")]
 GRAMMATICALIZED = {"được", "đến", "về", "cho", "vào", "ở", "để"}
 
 
-def token_groups(lang, train_vocab, ambiguous):
+def token_groups(lang, train_vocab, ambiguous, hapax):
     groups = {
         "tất cả": None,
         "OOV": lambda w, i: w[i] not in train_vocab,
         "trong từ vựng": lambda w, i: w[i] in train_vocab,
+        # HMM với unk="rare"/"signature" coi các từ này là UNK khi học (rare_k = 1)
+        "gặp đúng 1 lần trong train": lambda w, i: w[i] in hapax,
         "từ mơ hồ": lambda w, i: w[i] in ambiguous,
     }
     if lang == "vi":
@@ -94,10 +98,28 @@ def fmt_sentence(words, gold, pred_a, pred_b, name_a, name_b):
     return rows
 
 
-def analyze(lang, models, split):
+def eval_parts(lang, split, recs):
+    """Các phần để chấm theo nhóm token: list (slice trên records, train dùng cho OOV/từ mơ hồ).
+
+    dev/test: một phần, train đầy đủ. cv: mỗi fold một phần cùng phần học của fold đó, vì
+    run_experiments.py --split cv ghi records theo đúng thứ tự kfold_sentences(train, CV_K, CV_SEED).
+    """
     train = load(lang, "train")
-    train_vocab = vocabulary(train)
-    ambiguous = ambiguous_words(train)
+    if split != "cv":
+        return [(slice(None), train)]
+    parts, start = [], 0
+    for train_i, val_i in kfold_sentences(train, CV_K, CV_SEED):
+        sl = slice(start, start + len(val_i))
+        for name, r in recs.items():
+            if [w for w, _, _ in r[sl]] != [w for w, _ in val_i]:
+                raise ValueError(f"{name}: records cv không khớp các fold (k={CV_K}, seed={CV_SEED}); "
+                                 "chạy lại run_experiments.py --split cv")
+        parts.append((sl, train_i))
+        start += len(val_i)
+    return parts
+
+
+def analyze(lang, models, split):
     recs = {}
     for name in models:
         path = ROOT / "results" / "preds" / f"{lang}_{name}_{split}.jsonl"
@@ -108,16 +130,34 @@ def analyze(lang, models, split):
     if not recs:
         return None
     names = list(recs)
-    lines = [f"# Phân tích lỗi: {lang} ({TREEBANKS[lang][0]}), {split}", ""]
+    where = f"{CV_K}-fold trên train (dự đoán out-of-fold)" if split == "cv" else split
+    lines = [f"# Phân tích lỗi: {lang} ({TREEBANKS[lang][0]}), {where}", ""]
+    if split == "cv":
+        lines += ["Mỗi câu train được gán nhãn bởi mô hình học trên các fold còn lại. OOV và từ mơ hồ tính "
+                  "theo phần học của fold chứa câu đó; accuracy theo nhóm gộp token của mọi fold. "
+                  "Nhóm không có token nào thì bỏ qua.", ""]
 
-    # Accuracy theo nhóm token / độ dài câu.
-    groups = token_groups(lang, train_vocab, ambiguous)
+    # Accuracy theo nhóm token / độ dài câu (với cv: gộp số token đúng của từng fold).
+    parts = []
+    for sl, tr in eval_parts(lang, split, recs):
+        vocab = vocabulary(tr)
+        hapax = {w for w, c in Counter(w for words, _ in tr for w in words).items() if c == 1}
+        parts.append((sl, vocab, token_groups(lang, vocab, ambiguous_words(tr), hapax)))
     lines += ["## Token accuracy theo nhóm", "",
               "| Nhóm | Số token | " + " | ".join(names) + " |", "|---" * (len(names) + 2) + "|"]
-    for gname, mask in groups.items():
-        ms = [metrics(recs[n], train_vocab, mask) for n in names]
-        lines.append(f"| {gname} | {ms[0]['n_tokens']:,} | "
-                     + " | ".join(f"{m['token_acc']:.2%}" for m in ms) + " |")
+    for gname in parts[0][2]:
+        accs, n_tok = [], 0
+        for n in names:
+            correct = total = 0
+            for sl, vocab, groups in parts:
+                m = metrics(recs[n][sl], vocab, groups[gname])
+                if m["n_tokens"]:
+                    correct += round(m["token_acc"] * m["n_tokens"])
+                    total += m["n_tokens"]
+            accs.append(correct / total if total else None)
+            n_tok = total
+        if n_tok:
+            lines.append(f"| {gname} | {n_tok:,} | " + " | ".join(f"{a:.2%}" for a in accs) + " |")
 
     # So sánh từng cặp mô hình.
     lines += ["", "## Kiểm định từng cặp (A - B, token accuracy)", "",
@@ -157,8 +197,8 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser()
     parser.add_argument("--langs", nargs="+", default=list(TREEBANKS))
-    parser.add_argument("--models", nargs="+", default=["baseline", "hmm", "crf"])
-    parser.add_argument("--split", default="dev", choices=["dev", "test"])
+    parser.add_argument("--models", nargs="+", default=["baseline", "hmm", "maxent", "memm", "crf"])
+    parser.add_argument("--split", default="dev", choices=["dev", "cv", "test"])
     args = parser.parse_args()
     for lang in args.langs:
         out = analyze(lang, args.models, args.split)
