@@ -17,8 +17,11 @@ eda:
 tune:
 	$(PY) scripts/tune.py
 
+# Tiếng Việt: kết quả chính là 5-fold trên train (dev VTB lệch phân phối, docs/notes/GHI_CHU.md mục 2);
+# dev của cả hai ngôn ngữ vẫn được chạy (với tiếng Việt là thí nghiệm phụ theo độ dài câu).
 dev:
 	$(PY) scripts/run_experiments.py
+	$(PY) scripts/run_experiments.py --split cv --langs vi
 
 curve:
 	$(PY) scripts/learning_curve.py
@@ -28,6 +31,7 @@ ablation:
 
 analyze: dev
 	$(PY) scripts/analyze.py
+	$(PY) scripts/analyze.py --split cv --langs vi
 
 ga:
 	$(PY) -m src.ga --lang vi

@@ -1,16 +1,18 @@
-# Ablation đặc trưng CRF (vi), đánh giá trên dev
+# Ablation đặc trưng CRF (vi), đánh giá bằng 5-fold trên train (TB ± độ lệch chuẩn giữa các fold)
 
-| Kiểu | Bộ đặc trưng | Token acc | Δ so với đầy đủ | OOV acc | Số đặc trưng ≠ 0 |
+Dev VTB lệch phân phối so với train/test nên tiếng Việt dùng k-fold trên train (docs/notes/GHI_CHU.md mục 2). Δ là hiệu trung bình so với bộ đầy đủ trên cùng fold; cột cuối đếm số fold mà cấu hình thấp hơn bộ đầy đủ. OOV tính theo phần học của từng fold.
+
+| Kiểu | Bộ đặc trưng | Token acc | Δ so với đầy đủ | OOV acc | Số fold thấp hơn đầy đủ |
 |---|---|---|---|---|---|
-| leave-one-out | đầy đủ | 85.62% | +0.00% | 63.78% | 64446 |
-| leave-one-out | - word | 85.25% | -0.37% | 63.20% | 60674 |
-| leave-one-out | - affix | 85.36% | -0.26% | 64.61% | 52728 |
-| leave-one-out | - shape | 84.40% | -1.22% | 58.71% | 64309 |
-| leave-one-out | - context1 | 84.70% | -0.93% | 60.47% | 35712 |
-| leave-one-out | - context2 | 85.90% | +0.28% | 64.05% | 49788 |
-| leave-one-out | - syllable | 85.23% | -0.39% | 62.93% | 59035 |
-| cumulative | word | 81.79% | -3.83% | 45.66% | 3789 |
-| cumulative | word + affix | 83.95% | -1.67% | 55.39% | 15507 |
-| cumulative | word + affix + shape | 84.98% | -0.64% | 60.80% | 15643 |
-| cumulative | word + affix + shape + context1 | 85.76% | +0.14% | 63.39% | 44377 |
-| cumulative | word + affix + shape + context1 + context2 | 85.23% | -0.39% | 62.93% | 59035 |
+| leave-one-out | đầy đủ | 90.45% ± 0.61% | +0.00% | 67.28% | - |
+| leave-one-out | - word | 90.28% ± 0.63% | -0.17% | 67.08% | 5/5 |
+| leave-one-out | - affix | 89.93% ± 0.78% | -0.52% | 66.90% | 5/5 |
+| leave-one-out | - shape | 90.03% ± 0.78% | -0.43% | 64.02% | 5/5 |
+| leave-one-out | - context1 | 89.85% ± 0.78% | -0.61% | 64.14% | 5/5 |
+| leave-one-out | - context2 | 90.63% ± 0.39% | +0.18% | 67.23% | 1/5 |
+| leave-one-out | - syllable | 90.17% ± 0.65% | -0.28% | 66.66% | 5/5 |
+| cumulative | word | 87.94% ± 0.54% | -2.52% | 49.56% | 5/5 |
+| cumulative | word + affix | 89.54% ± 0.61% | -0.91% | 60.74% | 5/5 |
+| cumulative | word + affix + shape | 90.16% ± 0.54% | -0.30% | 64.39% | 4/5 |
+| cumulative | word + affix + shape + context1 | 90.39% ± 0.49% | -0.07% | 66.55% | 3/5 |
+| cumulative | word + affix + shape + context1 + context2 | 90.17% ± 0.65% | -0.28% | 66.66% | 5/5 |

@@ -10,9 +10,17 @@ Dev và test không được dùng ở đây, nên chúng vẫn là ước lư�
 import itertools
 import random
 import statistics
+import time
 
 from src.data import vocabulary
 from src.evaluate import metrics, predict_all
+
+# Giao thức đánh giá trong giai đoạn phát triển (docs/notes/GHI_CHU.md, mục 2).
+# Dev của VTB lệch phân phối so với train/test (1/3 số câu dài hơn 25 từ, train/test
+# không có câu nào như vậy), nên với tiếng Việt mọi so sánh dùng k-fold trên train;
+# tiếng Anh dùng dev. Dev VTB đầy đủ chỉ còn dùng cho thí nghiệm phụ "accuracy theo độ dài câu".
+EVAL_SPLIT = {"vi": "cv", "en": "dev"}
+CV_K, CV_SEED = 5, 42
 
 
 def _shuffled_indices(n, seed):
@@ -46,13 +54,28 @@ def param_grid(grid):
     return [dict(zip(keys, vals)) for vals in itertools.product(*(grid[k] for k in keys))]
 
 
-def cross_val_score(model_cls, params, sentences, k=5, seed=42, metric="token_acc"):
-    scores = []
+def cross_val_predict(model_cls, params, sentences, k=CV_K, seed=CV_SEED):
+    """Dự đoán out-of-fold: mỗi câu được gán nhãn bởi mô hình không thấy câu đó lúc học.
+
+    Trả về một dict cho mỗi fold: records (predict_all trên fold giữ lại), train (phần
+    dùng để học, cần cho OOV/từ mơ hồ của fold đó), fit_time_s, predict_time_s.
+    Nối records của các fold được đúng một lượt dự đoán cho toàn bộ `sentences`,
+    theo thứ tự của kfold_sentences(sentences, k, seed).
+    """
+    folds = []
     for train_i, val_i in kfold_sentences(sentences, k, seed):
+        start = time.perf_counter()
         model = model_cls(**params).fit(train_i)
-        records, _ = predict_all(model, val_i)
-        scores.append(metrics(records, vocabulary(train_i))[metric])
-    return scores
+        fit_time = time.perf_counter() - start
+        records, predict_time = predict_all(model, val_i)
+        folds.append({"records": records, "train": train_i,
+                      "fit_time_s": fit_time, "predict_time_s": predict_time})
+    return folds
+
+
+def cross_val_score(model_cls, params, sentences, k=CV_K, seed=CV_SEED, metric="token_acc"):
+    return [metrics(f["records"], vocabulary(f["train"]))[metric]
+            for f in cross_val_predict(model_cls, params, sentences, k, seed)]
 
 
 def grid_search(model_cls, grid, sentences, k=5, metric="token_acc", seed=42, log=None):
