@@ -130,8 +130,9 @@ def analyze(lang, models, split):
 
     # Ma trận nhầm lẫn + top cặp nhầm.
     labels = sorted({t for r in recs.values() for _, g, p in r for t in g + p})
+    suffix = "" if split == "dev" else f"_{split}"  # không ghi đè hình của dev
     for name in names:
-        out = ROOT / "results" / "figures" / f"confusion_{lang}_{name}.png"
+        out = ROOT / "results" / "figures" / f"confusion_{lang}_{name}{suffix}.png"
         plot_confusion(confusion(recs[name], labels), labels, f"{name} ({lang}, {split})", out)
         lines += ["", f"## {name}: 10 cặp nhầm nhiều nhất (gold -> dự đoán)", "",
                   f"Ma trận nhầm lẫn chuẩn hóa theo hàng: `{out.relative_to(ROOT).as_posix()}`", "",
