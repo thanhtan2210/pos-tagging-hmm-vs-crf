@@ -11,7 +11,7 @@
 - [x] scripts/analyze.py (RQ2, phân tích lỗi)
 - [x] scripts/ablation.py (RQ3)
 - [x] (nếu kịp) src/memm.py (RQ4), src/ga.py
-- [ ] đánh giá MỘT LẦN trên test
+- [x] đánh giá MỘT LẦN trên test
 
 ## Tái lập & đóng gói
 - [x] Makefile, Dockerfile, CI (.github/workflows/tests.yml)
