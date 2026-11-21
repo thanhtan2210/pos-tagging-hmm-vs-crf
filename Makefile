@@ -1,7 +1,7 @@
 # Chạy lại toàn bộ project: `make all`. Tập test: `make final` (CHỈ MỘT LẦN, cuối dự án).
 PY ?= python
 
-.PHONY: all data test eda tune dev curve ablation analyze ga final clean
+.PHONY: all data test eda tune dev curve ablation analyze ga models final clean
 
 all: data test eda tune dev curve ablation analyze
 
@@ -35,6 +35,10 @@ analyze: dev
 
 ga:
 	$(PY) -m src.ga --lang vi
+
+# Huấn luyện mô hình cuối trên toàn bộ train, lưu vào models/ (không nằm trong git).
+models:
+	$(PY) scripts/train_final.py
 
 final:
 	$(PY) scripts/run_experiments.py --split test

@@ -18,6 +18,7 @@ Bài tập lớn môn Học máy (CO3117), HK261, Trường ĐH Bách Khoa – �
 - [Phương pháp](#phương-pháp)
 - [Kết quả](#kết-quả)
 - [Chạy lại kết quả](#chạy-lại-kết-quả)
+- [Mô hình đã huấn luyện](#mô-hình-đã-huấn-luyện)
 - [Dùng các mô hình trong Python](#dùng-các-mô-hình-trong-python)
 - [Cấu trúc repo](#cấu-trúc-repo)
 - [Hạn chế](#hạn-chế)
@@ -194,6 +195,34 @@ docker run --rm -v "$PWD/results:/app/results" pos-tagging        # chạy `make
 - Kết quả đã được chạy lại trên Windows và trong Docker (Linux). Baseline, HMM, MaxEnt và MEMM trùng khớp hoàn toàn;
   CRF có thể lệch ở chữ số thập phân thứ hai do sai số dấu phẩy động giữa các nền tảng.
 
+## Mô hình đã huấn luyện
+
+Các mô hình cuối (huấn luyện trên toàn bộ train với tham số trong `configs/best_params.json`) chính là các mô hình
+cho ra mọi con số trong README này.
+
+- **Tải về:** [models.zip]([ĐIỀN: link Google Drive hoặc GitHub Release]). Giải nén vào `models/`.
+- **Hoặc tự huấn luyện:** `python scripts/train_final.py` (hoặc `make models`, khoảng 10 phút). Script tải lại từng file
+  vừa lưu và kiểm tra accuracy trên dev; không dùng tập test.
+- `models/manifest.json` ghi tham số, accuracy dev, dung lượng và mã SHA-256 của từng file.
+- File dùng `joblib` (pickle). Chỉ tải file mô hình từ nguồn tin cậy.
+
+| File | Mô hình | Token accuracy trên dev (vi / en) |
+|---|---|---|
+| `{vi,en}_baseline.joblib` | nhãn phổ biến nhất | 81.29% / 86.13% |
+| `{vi,en}_hmm.joblib` | HMM bigram, UNK theo hình thái | 80.95% / 90.74% |
+| `{vi,en}_maxent.joblib` | MaxEnt | 85.53% / 94.41% |
+| `{vi,en}_memm.joblib` | MEMM | 85.74% / 94.52% |
+| `{vi,en}_crf.joblib` | CRF | 85.62% / 94.78% |
+
+Gán nhãn một câu từ dòng lệnh. Câu phải được tách từ sẵn, các từ cách nhau bởi dấu cách; với tiếng Việt, nối các âm
+tiết của một từ bằng `_`:
+
+```bash
+python scripts/tag.py --model models/vi_crf.joblib "Tôi là học_sinh ."
+python scripts/tag.py --model models/en_crf.joblib "I want to book a flight ."
+python scripts/tag.py --model models/en_crf.joblib --file sentences.txt      # mỗi dòng một câu
+```
+
 ## Dùng các mô hình trong Python
 
 Mọi mô hình có cùng giao diện: `fit(sentences)` với `sentences = [(words, tags), ...]`, và `predict(words)`.
@@ -214,6 +243,16 @@ print(crf.predict(["I", "want", "to", "book", "a", "flight"]))
 print(evaluate(crf, dev, vocabulary(train))["token_acc"])
 ```
 
+Tải mô hình đã lưu thay vì huấn luyện lại:
+
+```python
+from src.model_io import load_model
+
+model, meta = load_model("models/vi_crf.joblib")
+print(meta["params"])                              # {'c1': 0.0, 'c2': 0.1}
+print(model.predict(["Tôi", "là", "học sinh", "."]))
+```
+
 ## Cấu trúc repo
 
 ```
@@ -228,7 +267,10 @@ src/                    thư viện (được scripts và tests import)
   model_selection.py    k-fold theo câu, grid search, lấy tập con
   stats.py              paired bootstrap, McNemar
   ga.py                 thuật toán di truyền chọn nhóm đặc trưng
-scripts/                mỗi thí nghiệm một script (xem bảng ở trên)
+  model_io.py           lưu / tải mô hình đã huấn luyện (joblib + metadata)
+scripts/                mỗi thí nghiệm một script (xem bảng ở trên),
+                        cùng train_final.py (xuất mô hình) và tag.py (gán nhãn câu)
+models/                 mô hình đã huấn luyện (không nằm trong git; tải về hoặc chạy train_final.py)
 configs/                best_params.json, sinh bởi scripts/tune.py
 results/tables/         bảng kết quả (được commit)
 results/figures/        hình (được commit)
