@@ -6,7 +6,7 @@
 - [x] src/evaluate.py: tách predict_all() và metrics(records, train_vocab, mask); lưu records vào results/preds/
 - [x] src/features.py + src/crf.py
 - [x] src/model_selection.py + scripts/tune.py -> configs/best_params.json
-- [ ] chốt cách xử lý dev VTB lệch độ dài câu
+- [x] chốt cách xử lý dev VTB lệch độ dài câu: 5-fold trên train (docs/notes/GHI_CHU.md mục 2)
 - [x] scripts/learning_curve.py (RQ1), src/stats.py
 - [x] scripts/analyze.py (RQ2, phân tích lỗi)
 - [x] scripts/ablation.py (RQ3)

@@ -100,6 +100,32 @@ def describe(lang):
     return "\n".join(lines)
 
 
+def plot_sentence_lengths():
+    """Histogram độ dài câu train/dev/test cho từng ngôn ngữ (chỉ dùng độ dài, không dùng nhãn)."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, len(TREEBANKS), figsize=(11, 3.8))
+    for ax, lang in zip(axes, TREEBANKS):
+        lens = {split: [len(w) for w, _ in load(lang, split)] for split in ("train", "dev", "test")}
+        bins = range(1, min(max(max(v) for v in lens.values()), 80) + 2, 2)
+        for split, color in zip(lens, ("C0", "C3", "C2")):
+            ax.hist(lens[split], bins=bins, density=True, histtype="step", linewidth=1.6,
+                    color=color, label=f"{split} (TB {sum(lens[split]) / len(lens[split]):.1f})")
+        ax.axvline(25, color="gray", linestyle="--", linewidth=1)
+        ax.set_title(f"{lang} ({TREEBANKS[lang][0]})")
+        ax.set_xlabel("độ dài câu (số từ)")
+        ax.set_ylabel("tỷ lệ câu")
+        ax.legend()
+    fig.tight_layout()
+    out = ROOT / "results" / "figures" / "sentence_length.png"
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    return out
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")  # console Windows mặc định không in được tiếng Việt
     out = ROOT / "results" / "eda.md"
@@ -108,6 +134,7 @@ def main():
     out.write_text(text + "\n", encoding="utf-8")
     print(text)
     print(f"\nĐã ghi {out.relative_to(ROOT)}")
+    print(f"Đã vẽ {plot_sentence_lengths().relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

@@ -25,12 +25,20 @@ Số liệu lấy từ `python scripts/eda.py` (bản UD tải ngày 24/10/2026,
 
 Train và test chỉ gồm câu tối đa 25 từ, còn dev có nhiều câu dài hơn hẳn. Nếu chọn tham số theo dev, ta đang tối ưu cho một phân phối khác với phân phối của test.
 
-**Cần quyết định** cách chọn mô hình cho tiếng Việt:
-- (a) Lọc dev chỉ giữ câu ≤ 25 từ để khớp với test.
-- (b) Dùng k-fold cross-validation trên train để chọn tham số; giữ nguyên dev đầy đủ làm thí nghiệm phụ "độ bền theo độ dài câu".
-- (c) Giữ nguyên dev và ghi nhận đây là hạn chế.
+**Đã chốt: phương án (b).** Các phương án đã cân nhắc:
+- (a) Lọc dev chỉ giữ câu ≤ 25 từ để khớp với test: loại 1/3 dev, mất luôn dữ liệu để phân tích câu dài.
+- (b) Dùng k-fold trên train để chọn tham số và so sánh mô hình; giữ dev đầy đủ làm thí nghiệm phụ theo độ dài câu.
+- (c) Giữ nguyên dev và ghi nhận là hạn chế: kết luận tiếng Việt sẽ dựa trên phân phối khác test.
 
-Phương án (b) chặt chẽ nhất và tạo thêm một nội dung thảo luận (accuracy theo độ dài câu). Đây là câu hỏi tốt để hỏi thầy trong buổi trình bày.
+Cách làm cụ thể:
+- Chọn tham số: 3-fold trên train (`scripts/tune.py`) cho cả hai ngôn ngữ.
+- So sánh mô hình tiếng Việt: 5-fold trên train (`run_experiments.py --split cv`, `analyze.py --split cv`; ablation và learning curve tiếng Việt cũng chạy 5-fold). Tiếng Anh vẫn dùng dev vì dev EWT không lệch.
+- Dev VTB đầy đủ: chỉ dùng cho bảng accuracy theo độ dài câu (`analysis_vi_dev.md`).
+- Test: đánh giá một lần, đối chiếu cả ba cách.
+
+Kết quả đối chiếu (CRF tiếng Việt): dev 85,62%, 5-fold 90,45%, test 88,34%.
+- Dev bi quan vì 1/3 câu dài hơn mọi câu train; 5-fold lạc quan vì câu của cùng một bài báo có thể nằm ở cả phần học lẫn phần chấm (VTB không có mã văn bản nên không chia fold theo văn bản được); test nằm giữa.
+- Mọi kết luận so sánh giữ nguyên qua cả ba cách, trừ HMM − baseline: dev −0,34 (không ý nghĩa), 5-fold −0,92, test +1,22. Chỉ kết luận "ngang ngửa".
 
 ## 3. Mức độ mơ hồ: đo thế nào cho đúng
 
