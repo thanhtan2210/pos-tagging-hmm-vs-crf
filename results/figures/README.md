@@ -7,3 +7,4 @@
 | confusion_{lang}_{model}.png | RQ2, trên dev | `python scripts/analyze.py` |
 | ablation_{lang}.png | RQ3 (vi: 5-fold trên train, en: dev) | `python scripts/ablation.py` |
 | ga_vi.png | RQ3 (GA) | `python -m src.ga --lang vi` |
+| sentence_length.png | EDA (độ dài câu train/dev/test) | `python scripts/eda.py` |
